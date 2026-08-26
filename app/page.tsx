@@ -264,7 +264,7 @@ export default function Home() {
         <div className="flex items-center gap-2">
           {demoMode && (
             <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-              Demo mode (no API key)
+              Local Agent · no API calls
             </span>
           )}
           {active && (

@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callQwen, validateHtml } from "@/lib/qwen";
-import { buildModifySystem, buildModifyUser } from "@/lib/prompts";
 import { demoModify } from "@/lib/demo";
 import { rateLimit } from "@/lib/rateLimit";
 
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  if (!currentHtml || !validateHtml(currentHtml)) {
+  if (!currentHtml || !looksLikeHtml(currentHtml)) {
     return NextResponse.json(
       { error: "Missing or invalid current app code." },
       { status: 400 }
@@ -48,30 +46,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    let html: string;
-    let summary: string;
-    const demo = !process.env.DASHSCOPE_API_KEY;
-
-    if (!demo) {
-      const system = buildModifySystem();
-      const user = buildModifyUser(prompt, currentHtml);
-      const raw = await callQwen(system, user);
-      if (!validateHtml(raw)) {
-        throw new Error(
-          "The model did not return a valid HTML document. Please try again."
-        );
-      }
-      html = raw;
-      summary = prompt.slice(0, 140);
-    } else {
-      const res = demoModify(prompt, currentHtml);
-      html = res.html;
-      summary = res.summary;
-    }
-
-    return NextResponse.json({ summary, html, demo });
+    // Kept local and deterministic so the demo has no API key or usage cost.
+    const res = demoModify(prompt, currentHtml);
+    return NextResponse.json({ ...res, demo: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Modification failed.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+function looksLikeHtml(html: string): boolean {
+  return /<!doctype\s+html/i.test(html) || /<html[\s>]/i.test(html);
 }

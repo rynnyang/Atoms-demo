@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callQwen, validateHtml } from "@/lib/qwen";
-import { buildGenerateSystem, buildGenerateUser, deriveName } from "@/lib/prompts";
 import { generateDemo } from "@/lib/demo";
 import { rateLimit } from "@/lib/rateLimit";
 
@@ -41,31 +39,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    let html: string;
-    let name: string;
-    let summary: string;
-    const demo = !process.env.DASHSCOPE_API_KEY;
-
-    if (!demo) {
-      const system = buildGenerateSystem();
-      const user = buildGenerateUser(prompt);
-      const raw = await callQwen(system, user);
-      if (!validateHtml(raw)) {
-        throw new Error(
-          "The model did not return a valid HTML document. Please try again."
-        );
-      }
-      html = raw;
-      name = deriveName(prompt);
-      summary = prompt.slice(0, 140);
-    } else {
-      const res = generateDemo(prompt);
-      html = res.html;
-      name = res.name;
-      summary = res.summary;
-    }
-
-    return NextResponse.json({ name, summary, html, demo });
+    // This project deliberately uses a deterministic local generation engine.
+    // No third-party model request is made, even when environment variables exist.
+    const res = generateDemo(prompt);
+    return NextResponse.json({ ...res, demo: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Generation failed.";
     return NextResponse.json({ error: message }, { status: 500 });
