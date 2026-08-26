@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDemo } from "@/lib/demo";
+import { callQwen, deriveName, validateHtml } from "@/lib/qwen";
+import { buildGenerateSystem, buildGenerateUser } from "@/lib/prompts";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -39,8 +41,21 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // This project deliberately uses a deterministic local generation engine.
-    // No third-party model request is made, even when environment variables exist.
+    const hasQwenKey = Boolean(process.env.DASHSCOPE_API_KEY?.trim());
+    if (hasQwenKey) {
+      const html = await callQwen(buildGenerateSystem(), buildGenerateUser(prompt));
+      if (!validateHtml(html)) {
+        throw new Error("The model did not return a complete HTML document. Please retry.");
+      }
+      return NextResponse.json({
+        name: deriveName(prompt),
+        summary: "Generated with Qwen LLM",
+        html,
+        demo: false,
+      });
+    }
+
+    // Keep a zero-configuration fallback for reviewers and local development.
     const res = generateDemo(prompt);
     return NextResponse.json({ ...res, demo: true });
   } catch (e: unknown) {

@@ -21,6 +21,7 @@ import VersionHistory from "@/components/VersionHistory";
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type MobileTab = "projects" | "chat" | "preview";
+type AgentMode = "local" | "qwen" | null;
 
 export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -28,7 +29,7 @@ export default function Home() {
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [isWorking, setIsWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
+  const [agentMode, setAgentMode] = useState<AgentMode>(null);
   const [showVersions, setShowVersions] = useState(false);
   const [previewOverride, setPreviewOverride] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
@@ -55,6 +56,7 @@ export default function Home() {
     setPreviewOverride(null);
     setShowVersions(false);
     setMobileTab("chat");
+    setAgentMode(null);
   }, []);
 
   const handleOpen = useCallback((id: string) => {
@@ -64,6 +66,7 @@ export default function Home() {
     setPreviewOverride(null);
     setShowVersions(false);
     setMobileTab("preview");
+    setAgentMode(null);
   }, []);
 
   const handleDelete = useCallback(
@@ -129,7 +132,7 @@ export default function Home() {
 
         persist(project);
         setActiveId(project.id);
-        setDemoMode(!!data.demo);
+        setAgentMode(data.demo ? "local" : "qwen");
         setStatus("ready");
         setMobileTab("preview");
       } catch (e) {
@@ -192,7 +195,7 @@ export default function Home() {
 
         persist(updated);
         setPreviewOverride(null);
-        setDemoMode(!!data.demo);
+        setAgentMode(data.demo ? "local" : "qwen");
         setStatus("ready");
       } catch (e) {
         setStatus("error");
@@ -262,9 +265,18 @@ export default function Home() {
           <span className="hidden text-slate-400 sm:inline">· AI App Builder</span>
         </div>
         <div className="flex items-center gap-2">
-          {demoMode && (
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-              Local Agent · no API calls
+          {agentMode && (
+            <span
+              className={
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold " +
+                (agentMode === "local"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-emerald-100 text-emerald-700")
+              }
+            >
+              {agentMode === "local"
+                ? "Local Agent · no API calls"
+                : "Qwen LLM Agent"}
             </span>
           )}
           {active && (

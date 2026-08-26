@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { demoModify } from "@/lib/demo";
+import { callQwen, validateHtml } from "@/lib/qwen";
+import { buildModifySystem, buildModifyUser } from "@/lib/prompts";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_PROMPT = 2000;
+const MAX_CURRENT_HTML = 160_000;
 
 export async function POST(req: NextRequest) {
   const ip =
@@ -38,7 +41,11 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  if (!currentHtml || !looksLikeHtml(currentHtml)) {
+  if (
+    !currentHtml ||
+    currentHtml.length > MAX_CURRENT_HTML ||
+    !looksLikeHtml(currentHtml)
+  ) {
     return NextResponse.json(
       { error: "Missing or invalid current app code." },
       { status: 400 }
@@ -46,7 +53,23 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Kept local and deterministic so the demo has no API key or usage cost.
+    const hasQwenKey = Boolean(process.env.DASHSCOPE_API_KEY?.trim());
+    if (hasQwenKey) {
+      const html = await callQwen(
+        buildModifySystem(),
+        buildModifyUser(prompt, currentHtml)
+      );
+      if (!validateHtml(html)) {
+        throw new Error("The model did not return a complete HTML document. Please retry.");
+      }
+      return NextResponse.json({
+        summary: "Updated with Qwen LLM",
+        html,
+        demo: false,
+      });
+    }
+
+    // Keep a zero-configuration fallback for reviewers and local development.
     const res = demoModify(prompt, currentHtml);
     return NextResponse.json({ ...res, demo: true });
   } catch (e: unknown) {
