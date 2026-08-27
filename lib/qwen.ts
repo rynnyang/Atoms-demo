@@ -20,7 +20,7 @@ export async function callQwen(
 
   const baseUrl = (
     process.env.QWEN_BASE_URL ||
-    "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+    "https://dashscope.aliyuncs.com/compatible-mode/v1"
   ).replace(/\/$/, "");
   const model = process.env.QWEN_MODEL || "qwen3.7-flash";
   const controller = new AbortController();

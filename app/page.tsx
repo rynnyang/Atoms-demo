@@ -29,6 +29,9 @@ export default function Home() {
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [isWorking, setIsWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Keep the latest request visible before the API succeeds. A failed first
+  // generation has no Project yet, so it cannot live in project.messages.
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [agentMode, setAgentMode] = useState<AgentMode>(null);
   const [showVersions, setShowVersions] = useState(false);
   const [previewOverride, setPreviewOverride] = useState<string | null>(null);
@@ -53,6 +56,7 @@ export default function Home() {
     setActiveId(null);
     setStatus("idle");
     setError(null);
+    setPendingMessage(null);
     setPreviewOverride(null);
     setShowVersions(false);
     setMobileTab("chat");
@@ -63,6 +67,7 @@ export default function Home() {
     setActiveId(id);
     setStatus("ready");
     setError(null);
+    setPendingMessage(null);
     setPreviewOverride(null);
     setShowVersions(false);
     setMobileTab("preview");
@@ -81,6 +86,7 @@ export default function Home() {
   const runGenerate = useCallback(
     async (prompt: string) => {
       setError(null);
+      setPendingMessage(prompt);
       setIsWorking(true);
       setStatus("understanding");
       await delay(450);
@@ -132,6 +138,7 @@ export default function Home() {
 
         persist(project);
         setActiveId(project.id);
+        setPendingMessage(null);
         setAgentMode(data.demo ? "local" : "qwen");
         setStatus("ready");
         setMobileTab("preview");
@@ -150,6 +157,7 @@ export default function Home() {
     async (prompt: string) => {
       if (!active) return;
       setError(null);
+      setPendingMessage(prompt);
       setIsWorking(true);
       setStatus("building");
 
@@ -194,6 +202,7 @@ export default function Home() {
         };
 
         persist(updated);
+        setPendingMessage(null);
         setPreviewOverride(null);
         setAgentMode(data.demo ? "local" : "qwen");
         setStatus("ready");
@@ -334,6 +343,7 @@ export default function Home() {
         >
           <AgentChat
             messages={active?.messages ?? []}
+            pendingMessage={pendingMessage}
             status={status}
             error={error}
             isWorking={isWorking}

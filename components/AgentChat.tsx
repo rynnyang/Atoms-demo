@@ -8,6 +8,7 @@ interface Props {
   messages: ChatMessage[];
   status: GenerationStatus;
   error: string | null;
+  pendingMessage?: string | null;
   isWorking: boolean;
   onSend: (value: string) => void;
   onRetry: () => void;
@@ -25,13 +26,26 @@ export default function AgentChat({
   messages,
   status,
   error,
+  pendingMessage,
   isWorking,
   onSend,
   onRetry,
   placeholder,
   buttonLabel,
 }: Props) {
-  const empty = messages.length === 0;
+  const pendingId = "pending-message";
+  const displayMessages = pendingMessage
+    ? [
+        ...messages,
+        {
+          id: pendingId,
+          role: "user" as const,
+          content: pendingMessage,
+          createdAt: 0,
+        },
+      ]
+    : messages;
+  const empty = displayMessages.length === 0;
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -61,11 +75,16 @@ export default function AgentChat({
           </div>
         ) : (
           <div className="space-y-4">
-            {messages.map((m) =>
+            {displayMessages.map((m) =>
               m.role === "user" ? (
                 <div key={m.id} className="flex justify-end">
                   <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-indigo-600 px-3.5 py-2 text-sm text-white">
                     {m.content}
+                    {m.id === pendingId && (
+                      <div className="mt-1 text-[10px] font-medium text-indigo-100">
+                        {isWorking ? "Sending…" : "Request failed — retry when ready"}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -86,8 +105,8 @@ export default function AgentChat({
       <div className="border-t border-slate-100 px-4 pb-2 pt-3">
         <AgentStatus status={status} />
         {error && (
-          <div className="mt-2 flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            <span>{error}</span>
+          <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <span className="min-w-0 break-words">{error}</span>
             <button
               onClick={onRetry}
               className="rounded-md bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700"

@@ -83,7 +83,7 @@ DASHSCOPE_API_KEY=
 
 ```env
 # 请使用你的 Model Studio / QwenCloud 账号和区域对应的 OpenAI 兼容地址。
-QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 
 # 填写你账号已开通的模型名称。
 QWEN_MODEL=qwen3.7-flash
