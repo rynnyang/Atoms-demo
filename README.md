@@ -45,14 +45,14 @@ Mini Atoms 可以把一个产品想法转成可运行的小型网页应用。项
 2. 在中间聊天区域输入需求，例如：
 
    ```text
-   Build a pomodoro timer with a task list.
+   生成一个喝水打卡小应用：显示今日喝水杯数；点击“喝一杯”加 1；提供“重置”按钮；刷新页面后数量仍然保留；界面使用蓝色和白色。
    ```
 
 3. 点击 **Build**，右侧会显示可立即操作的应用预览。
 4. 继续输入修改需求，例如：
 
    ```text
-   Make it dark mode and add a circular progress ring.
+   把主色改成紫色，并增加一个“目标 8 杯”的进度条。
    ```
 
 5. 点击顶部 **Version History**，可以预览历史结果或恢复指定版本。
@@ -60,56 +60,7 @@ Mini Atoms 可以把一个产品想法转成可运行的小型网页应用。项
 7. 点击 **Code** 可查看、复制或下载 HTML；点击 **Review** 可查看本地静态审查结果。
 8. 刷新浏览器，再从左侧项目列表打开项目，可验证项目、聊天、代码和版本历史均已保存。
 
-## 启用 Qwen LLM
 
-当前线上站点未配置 Key 时会使用本地 Agent。Qwen Key 只由 Next.js 服务端读取，不会传到浏览器。
-
-### 本地开发填写位置
-
-先复制环境变量模板：
-
-```powershell
-Copy-Item .env.local.example .env.local
-```
-
-然后打开 **`.env.local`**，在下面这一行等号后填写你的真实 Key：
-
-```env
-# 在等号后粘贴你的 Qwen / DashScope API Key：
-DASHSCOPE_API_KEY=
-```
-
-可选设置：
-
-```env
-# 请使用你的 Model Studio / QwenCloud 账号和区域对应的 OpenAI 兼容地址。
-QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-
-# 填写你账号已开通的模型名称。
-QWEN_MODEL=qwen3.7-flash
-```
-
-运行本地项目：
-
-```powershell
-npm ci
-npm run dev
-```
-
-填写 `DASHSCOPE_API_KEY` 后，下一次点击 Build 或 Update，页面顶部会显示 **Qwen LLM Agent**。保持为空则继续使用免费的本地 Agent 回退。
-
-### Vercel 线上填写位置
-
-1. 打开 Vercel 项目。
-2. 进入 **Settings → Environment Variables**。
-3. 新增变量 `DASHSCOPE_API_KEY`，值填写你的真实 Key。
-4. 勾选 **Production**；如希望预览部署也调用 Qwen，可同时勾选 **Preview**。
-5. 如需要，可再添加 `QWEN_BASE_URL` 和 `QWEN_MODEL`。
-6. 到 **Deployments** 页面重新部署最新的 `main` 提交。
-
-不要使用 `NEXT_PUBLIC_DASHSCOPE_API_KEY`，也不要提交 `.env.local` 文件。
-
-Qwen 支持 OpenAI 兼容的 Chat Completions 接口。请从你的 Qwen / Model Studio 控制台获取 API Key，并使用对应账号和区域的 Base URL。参考 [Qwen 官方接入文档](https://www.alibabacloud.com/help/en/model-studio/first-api-call-to-qwen)。
 
 ## 两种模式的工作方式
 
